@@ -1,0 +1,46 @@
+name: approve-demo
+
+on:
+  workflow_dispatch:
+    inputs:
+      slug:
+        description: "Slug of the demo to approve (pending/<slug>.json must exist)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: approve-demo
+  cancel-in-progress: false
+
+jobs:
+  approve:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - name: Move the pending entry into demos.json
+        env:
+          SLUG: ${{ inputs.slug }}
+        run: node scripts/approve.mjs "$SLUG"
+      - name: Commit and push
+        env:
+          SLUG: ${{ inputs.slug }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add demos.json pending
+          git commit -m "Approve demo: $SLUG"
+          git push origin main
+      - name: Deploy the index (index.html, demos.json and covers/ only)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          rm -rf stage && mkdir stage
+          cp index.html demos.json stage/
+          cp -r covers stage/covers
+          npx --yes wrangler@4 pages deploy stage --project-name healthcare-demos --branch main --commit-dirty=true

@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Healthcare operations demos</title>
+<meta name="description" content="Concept prototypes for healthcare operations workflows. All data is invented.">
+<style>
+  :root {
+    --bg: #f5f7f6; --card: #ffffff; --ink: #1c2622; --muted: #5a6761;
+    --line: #dce3df; --accent: #2f5d50; --accent-ink: #ffffff; --shadow: 0 1px 2px rgba(0,0,0,.05), 0 6px 18px rgba(0,0,0,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #101513; --card: #19201d; --ink: #e8eeeb; --muted: #9aa8a1;
+      --line: #2a3430; --accent: #6fb39e; --accent-ink: #0d1411; --shadow: none;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 48px 16px 64px; }
+  h1 { font-size: clamp(1.6rem, 4vw, 2.2rem); line-height: 1.2; margin: 0 0 8px; }
+  .lede { color: var(--muted); margin: 0 0 32px; max-width: 60ch; }
+  .grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    overflow: hidden; display: flex; flex-direction: column; box-shadow: var(--shadow);
+  }
+  .card img { display: block; width: 100%; aspect-ratio: 1200 / 630; object-fit: cover; background: var(--line); }
+  .body { padding: 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .body h2 { font-size: 1.1rem; line-height: 1.3; margin: 0; }
+  .body p { margin: 0; color: var(--muted); font-size: .95rem; flex: 1; }
+  .links { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+  .links a {
+    text-decoration: none; font-weight: 600; font-size: .9rem; padding: 8px 14px; border-radius: 8px;
+    border: 1px solid var(--accent); color: var(--accent);
+  }
+  .links a.primary { background: var(--accent); color: var(--accent-ink); }
+  .links a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .empty {
+    border: 1px dashed var(--line); border-radius: 12px; padding: 40px 20px; text-align: center; color: var(--muted);
+  }
+  .empty strong { display: block; color: var(--ink); font-size: 1.1rem; margin-bottom: 4px; }
+  footer { margin-top: 48px; color: var(--muted); font-size: .85rem; }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <h1>Healthcare operations demos</h1>
+  <p class="lede">Concept prototypes of healthcare operations workflows. Every name, figure and record in them is invented.</p>
+  <div id="list" class="grid" aria-live="polite"></div>
+  <footer>Built by Umakes.cloud · umakescloud@gmail.com</footer>
+</main>
+<script>
+(function () {
+  var list = document.getElementById("list");
+  function el(tag, attrs, text) {
+    var n = document.createElement(tag);
+    for (var k in attrs || {}) n.setAttribute(k, attrs[k]);
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  function message(strong, rest) {
+    list.className = "";
+    var box = el("div", { "class": "empty" });
+    box.appendChild(el("strong", null, strong));
+    box.appendChild(document.createTextNode(rest));
+    list.replaceChildren(box);
+  }
+  function safeUrl(u) { return /^https:\/\//.test(u || "") ? u : "#"; }
+  function card(d) {
+    var c = el("article", { "class": "card" });
+    var img = el("img", { src: "./covers/" + encodeURIComponent(d.slug) + ".png", alt: "Screenshot of " + d.title, loading: "lazy" });
+    c.appendChild(img);
+    var b = el("div", { "class": "body" });
+    b.appendChild(el("h2", null, d.title));
+    b.appendChild(el("p", null, d.one_liner));
+    var l = el("div", { "class": "links" });
+    l.appendChild(el("a", { "class": "primary", href: safeUrl(d.live_url), rel: "noopener" }, "Live demo"));
+    l.appendChild(el("a", { href: safeUrl(d.repo_url), rel: "noopener" }, "Source"));
+    b.appendChild(l);
+    c.appendChild(b);
+    return c;
+  }
+  fetch("./demos.json", { cache: "no-cache" })
+    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function (data) {
+      var demos = (data && data.demos) || [];
+      if (!demos.length) return message("No demos yet.", "Check back soon.");
+      list.replaceChildren.apply(list, demos.map(card));
+    })
+    .catch(function () { message("The demo list could not be loaded.", "Please refresh the page."); });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "slug": "evv-visit-exception-queue-demo",
+  "title": "Home care visit verification and billing hold queue",
+  "one_liner": "One queue for home care visits with missing or mismatched EVV records, held from billing until a coordinator signs off.",
+  "live_url": "https://evv-visit-exception-queue-demo.pages.dev",
+  "repo_url": "https://github.com/umakescloud-max/evv-visit-exception-queue-demo",
+  "cover": "covers/evv-visit-exception-queue-demo.png"
+}
